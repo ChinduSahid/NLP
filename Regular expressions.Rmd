@@ -1,0 +1,175 @@
+---
+title: "Regular Expressions"
+author: "CHINDU"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+The dataset used is from Kaggle (Women's E-Commerce Clothing Reviews). The dataset contains 23000 customer reviews and ratings.
+
+```{r}
+library(stringr)
+data<- read.csv("Womens Clothing E-Commerce Reviews.csv")
+```
+
+## Using Regexp to get some understanding about our data and to replace, extract or count words.
+```{r}
+# Print data which contains a number (by doing this we can filter only reviews were customer mention about size, height etc)
+head(grep(pattern="\\d",x=data$Review.Text,value=TRUE))
+```
+
+```{r}
+# Find all items with a number followed by a space
+head(grep(pattern = "\\d\\s", x = data$Review.Text))
+```
+```{r}
+# How many times was the word 'favorite' used?
+length(grep(pattern = "favorite", x = data$Review.Text))
+```
+```{r}
+# Replacing words/punctuations, example ! with .
+head(gsub(pattern = '!', replacement = '.', x = data$Review.Text))
+```
+```{r}
+# Replace all occurences of "it" with 'Dress '.
+head(gsub(pattern = 'it\\s', replacement = 'the dress ', x =data$Review.Text ))
+```
+```{r}
+# Replace all occurences of "it's" with 'It is'
+head(gsub(pattern = "it\\'s", replacement = 'it is ', x = data$Review.Text))
+```
+
+```{r}
+# Convert to lower (conver all to lower letter)
+head(tolower(data$Review.Text))
+```
+
+```{r}
+# Extract parts of string 
+head(substr(x=data$Review.Text, start=1,stop=10))
+```
+
+```{r}
+# Find and replace first match
+head(sub(pattern = "L",replacement = "B",x = data$Review.Text,ignore.case = T))
+```
+```{r}
+# Find and replace all matches
+head(gsub(pattern = "Lo",replacement = "Ha",x = data$Review.Text,ignore.case = T))
+```
+
+```{r}
+# All reviews with the word love one or more times
+head(grep(pattern="love+",data$Review.Text,value = T))
+```
+
+```{r}
+# All reviews with the word love excatly 2 times
+head(grep(pattern="love{2}",x=data$Review.Text,value=T))
+```
+
+# Simple examples to understand Regexp
+```{r}
+string <- "There are 20 sweets in the bag, 5 are for John"
+# Replace numbers by _
+string
+gsub(pattern = "\\d+",replacement = "_",x = string)
+# Extract the first number from a string
+string
+regmatches(string,regexpr(pattern = "\\d+",text = string))
+```
+```{r}
+# Extract all numbers
+string
+regmatches(x = string,gregexpr("[0-9]+",text = string))
+```
+```{r}
+# Get digits
+string
+unlist(regmatches(string,gregexpr("[[:digit:]]+",text = string)))
+```
+```{r}
+# Match a space - returns positions
+string
+gregexpr(pattern = "\\s+",text = string)
+```
+```{r}
+# Match a non space
+string
+gsub(pattern = "\\S+",replacement = "app",x = string)
+```
+```{r}
+# Match a word character
+string
+gsub(pattern = "\\w",replacement = "k",x = string)
+```
+```{r}
+# Match a non-word character
+string
+gsub(pattern = "\\W",replacement = "k",x = string)  
+```
+```{r}
+# Extract without digits
+string
+regmatches(x = string,gregexpr("[^0-9]+",text = string))  
+```
+```{r}
+# Remove punctuations
+string
+gsub(pattern = "[[:punct:]]+",replacement = "",x = string)
+```
+```{r}
+# Remove spaces
+string
+gsub(pattern = "[[:blank:]]",replacement = "-",x = string)
+```
+```{r}
+# Remove non graphical characters
+string
+gsub(pattern = "[^[:graph:]]+",replacement = "",x = string)
+```
+```{r}
+# Extract email addresses from a given string
+string <- c("My email address is CHINDU@hotmail.com","address is john@hotmail.com","aescher koeif",
+            "paul renne","randomguy@gmail.com")
+string
+unlist(regmatches(x = string, gregexpr(pattern = "[[:alnum:]]+\\@[[:alpha:]]+\\.com",text = string)))  
+```
+```{r}
+# Extract the minimum number from each range
+x <- c("15 to 30", "31 to 45", "46 to 80")
+x
+gsub(" .*\\d+", "", x)  
+```
+```{r}
+# Extract information inside brackets in a string
+string <- "This is an important message (Call me ASAP)"
+string
+gsub("[\\(\\)]","",regmatches(string, gregexpr("\\(.*?\\)", string))[[1]])
+```
+```{r}
+# Remove digits from a string which contains alphanumeric characters
+c2 <- "In the competition held on the 2nd of April 02042020, John came in 1st. "
+c2
+gsub(pattern = "\\b\\d+\\b",replacement = "",x = c2)  
+```
+```{r}
+# Remove punctuation from a line of text
+going <- "Hey! what are you doing? It's crazy here."
+going
+gsub(pattern = "[[:punct:]]+",replacement = "",x = going)
+```
+```{r}
+# In a key value pair, extract the values
+string = c("G1:E001", "G2:E002", "G3:E003")
+string
+gsub(pattern = ".*:",replacement = "",x = string)
+```
+```{r}
+# Extract strings which are available in key value pairs
+d <- c("(monday :: 0.1231313213)","tomorrow","(tuesday :: 0.1434343412)")
+d
+grep(pattern = "\\([a-z]+ :: (0\\.[0-9]+)\\)",x = d,value = T)
+```
+
