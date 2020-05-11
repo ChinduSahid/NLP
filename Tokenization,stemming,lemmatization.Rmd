@@ -31,27 +31,27 @@ str(datax)
 # Subset data to only the fields requiried
 data<-datax %>% select(Clothing.ID,Review.Text)
 data$Review.Text<-as.character((data$Review.Text))
-head(data)
+data$Clothing.ID<-as.factor(data$Clothing.ID)
+str(data)
 ```
 
 # Tokenization 
 
-## Split the data into sentences
+## Split the data into sentences (This is usually useful for long text documents)
 ```{r}
 
 data %>%
   unnest_tokens(output = "sentences", input = Review.Text, token = "sentences")%>%
-  # Count sentences using the the clothing>ID column
-count(Clothing.ID)
+count(Clothing.ID,sentences,sort=TRUE)
 
 ```
 
-## Split the data into words
-
+## Split the data into words (This is a common approach)
 ```{r}
+
 data %>%
   unnest_tokens(output = "word", input = Review.Text, token = "words")%>%
-  count(Clothing.ID)
+  count(Clothing.ID,word,sort=TRUE)
 ```
 
 
@@ -60,15 +60,14 @@ data %>%
 data %>%
   unnest_tokens(output = "regexsplit", input = Review.Text,
                 token = "regex", pattern = "\\.") %>%
-  count(Clothing.ID,sort=TRUE)
+  count(Clothing.ID,regexsplit,sort=TRUE)
 ```
 
 
-## Filter data to first 100 customer id and identify sentenses which mentions love regardless of capital letter
+## Filter data identify sentenses which mentions love regardless of capital letter
 
 ```{r,results='asis'}
 Filtered_data<-data %>%
-  filter(Clothing.ID <100) %>%
   unnest_tokens (output= "Love",Review.Text,
                  token="regex",pattern="(?i)love") %>%
   #to skip first token
@@ -88,6 +87,8 @@ clothes <- data %>%
 clothes %>%
   count(word, sort = TRUE)
 ```
+
+The top words are all stopwords and this is not going to be useful for the analysis.
 
 ## Removing stop words
 ```{r}
@@ -120,6 +121,7 @@ Custom_clothes %>%
 stemmed_clothes %>%
   count(word, sort = TRUE)
 ```
+Notice how the top words changed when we applied stemming
 
 ## Lemmatization
 ```{r}
@@ -129,8 +131,8 @@ lemmatize_words(Custom_clothes)%>%
 ```
 
 In this data, lemmatization did not make any changes to the data.
-Lets explore the difference between lemmatization and stemming 
 
+Lets explore the difference between lemmatization and stemming 
 ```{r}
 dw <- c('driver', 'drive', 'drove', 'driven', 'drives', 'driving')
 
@@ -153,11 +155,9 @@ here is another example
 ```{r}
 
 y <- c(
-    "Stemming usually refers to a crude heuristic process that chops off the ends of words.",
-     "Lemmatization usually refers to doing things properly with the use of a vocabulary and morphological analysis of words",
-     "If confronted with the token saw, stemming might return just s, whereas lemmatization would attempt to return either see or saw depending on whether the use of the token was as a verb or a noun.",
-    "The two may also differ in that stemming most commonly collapses derivationally related words, whereas lemmatization commonly only collapses the different inflectional forms of a lemma.",
-    "Linguistic processing for stemming or lemmatization is often done by an additional plug-in component to the indexing process, and a number of such components exist, both commercial and open-source.")
+    "Stemming refers to a crude heuristic process that chops off the ends of words.",
+     "Lemmatization refers to doing things properly with the use of a vocabulary and morphological analysis of words"
+)
 
 stem_strings(y)
 lemmatize_strings(y)
