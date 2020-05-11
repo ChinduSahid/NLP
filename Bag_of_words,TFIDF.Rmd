@@ -1,0 +1,162 @@
+---
+title: "Bag of words,TFIDF"
+author: "CHINDU"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+library(widyr)
+library(tm)
+library(tidytext)
+library(dplyr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Bag of words
+
+The bag of words uses vector to specify which words are in each text.
+
+Lets look at an example to understand the bag of words
+
+Text1 <- c("John is sleeping")
+Text2<- c("John is awake")
+Text3<- c("John is missing")
+
+We need to create a vector (Clean_vector) of the unique words in all of the text
+but first we need to carry out these steps
+1) Lower/upper case all words
+2) Remove stop words
+3) Remove punctuations
+4) carry out stemming / lemmatization
+
+the clean vector will look like
+clean_vector<-("john", "sleeping", "awake", "missing")
+
+Now lets see how each text looks in vector form
+we compare te clean_vector to each text. If the clean_vector contains the word in the text the 1 else 0
+
+From the clean_vector we see that text 1 has john and sleeping but not awake and missing
+hence:
+Text1_Vector <- c(1,1,0,0) 
+
+Text2_Vector <- c(1,0,1,0)
+Text3_Vector <- c(1,0,0,1)
+
+#Tidytext representation
+
+The the original representation a document that does not contains the words receives a 0 for that word, in the tidytext representation, word pairs that do not exisst are left out.
+
+```{r}
+# to find the words that appear in each review
+datax<- read.csv("Womens Clothing ECommerce Reviews.csv")
+str(datax)
+library(dplyr)
+data<-datax %>% select(Clothing.ID,Review.Text)
+data$Review.Text<-as.character((data$Review.Text))
+data$Clothing.ID<-as.factor(data$Clothing.ID)
+
+# Tokenize, remove stop words and do a word count by clothing id
+words<- data %>%
+  unnest_tokens(output= "word", token="words",input=Review.Text) %>%
+  anti_join(stop_words) 
+```
+Clothing.ID and word pairs that do not exist in a review are left out in the tidytext representation.
+
+Lets understatnd what the reviews are generally saying about the clothes with ID 1028
+```{r}
+words%>%
+filter(Clothing.ID==1078) %>%
+  count(word,sort=TRUE)
+
+
+library(ggplot2)
+
+words%>%
+  filter(Clothing.ID==1028) %>%
+  count(word, sort = TRUE) %>%
+  filter(n>10)%>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+```
+Most of the customers who left a review loved the product and they think is perfect. Such analysis help us to have a quick overview of how customer reacts to a product instead of reading through every reviews.
+
+#Sparse matrix
+
+parse matrices can become computational nightmares as the number of text documents and the number of unique words grow. Creating word representations with tweets can easily create sparse matrices because emojis, slang, acronyms, and other forms of language are used.
+
+```{r}
+# How many unique words are there?
+unique_words <-words %>%
+  count(word,sort=TRUE)
+unique_words
+
+# Count by id and word
+unique_words_by_id <- words %>%
+  count(Clothing.ID,word,sort=TRUE)
+unique_words_by_id
+
+# Find the size of the matrix
+size <-nrow(data) * nrow(unique_words)
+size
+```
+
+```{r}
+#Find percent of entries that would have a value
+percent <-nrow(unique_words_by_id)/size
+percent
+```
+
+# TFIDF
+
+Calculating TFIDF values relies on this bag-of-words representation, but takes into account how often a word appears in an article/reivew, and how often that word appears in the collection of articles/review.
+
+To determine how meaningful words would be when comparing different reviews, calculate the TFIDF weights for the words
+
+TF: Term frequency - Proportion of words in a text that are that term Text1 <- “john is awake”
+Text2 <- “john is sleeping” Text3 <- “john is missing” John is 1/4 words
+in text1, tf = 0.25
+IDF: Inverse document frequency - weight of how common a term is across all documents IDF= log N/x N:
+total number of documents in the corpus x: number of documents where the term appears
+John:IDF = log(3/3)
+TFIDF for “John”: text1: 1/4 * log(3/3)
+
+```{r}
+#Calculating the TFIDF matrix
+words<-data %>%
+  unnest_tokens(output='word',token="words",input=Review.Text)%>%
+  anti_join(stop_words) %>%
+  count(Clothing.ID,word,sort=TRUE) %>%
+  bind_tf_idf(word,Clothing.ID,n)
+words
+```
+
+We can use the tfidf values to access how similar two articles/reviews are if we use something called then cosine similarity.
+
+Cosine similarity is the similarity between two vectors and is defined as the measure of the angles formed when representing the vectors in a multi dimensional space.
+
+We can use the pairwise similarity function provided by the r package to calculate the cosine similarity of each pair of reviews
+
+#Pairwise similarity
+pairwise_similairty(tbl, item, feature, value, ..)
+tbl: A table or tibble
+item: the item to compare (articles, tweets,etc)
+Feature: column describing the link between the item (i.e words)
+value: the column of values (i.e.n or tf_idf)
+
+use cases
+- Find duplicates/similar pieces of text
+- use in clustering and classification analysis
+
+```{r}
+
+# Calculate cosine similarity using tf_idf values
+words %>%
+  pairwise_similarity(Clothing.ID, word, tf_idf) %>%
+  arrange(desc(similarity))
+```
+The similarity measures how similar two reviews are, with 1 representing that the two reviews are exactly the same and 0 representing that the two reviews have nothing in common.
