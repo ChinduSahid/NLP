@@ -1,0 +1,83 @@
+---
+title: "Extracting twitter data"
+author: "CHINDU"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  fig.path = "README_figs/README-"
+)
+```
+
+First we will need a twitter account and have these packages below installed
+
+1.rtweet
+2.httpuv
+
+When running the below query a browser pop-up will appear which requires you to authorize access.
+
+When using the free (Standard ApI) there are some limitations
+1) We can only extract tweets from past 7 days
+2) Maximum of 18,000 tweets returned per request
+
+# To extract twitter data matching a search query
+```{r}
+library(rtweet)
+library(httpuv)
+covid_tweets<- search_tweets("#covid",n=100,lang="en",include_rts = FALSE)
+head(covid_tweets)
+```
+n: number of tweets
+lang: language of tweets
+include_rts: TRUE to include re tweets
+
+# To extract tweets posted by a specific twitter user
+```{r}
+Eminem_tweets<- get_timeline("@Eminem",n=100)
+head(Eminem_tweets)
+```
+
+Here are some filters that are useful when extracting twitter data
+
+1) -filter -> Extract original tweets
+2) -filter:retweets-> Exclude all retweets
+3) -filter:quote ->filters out quoted tweets
+4) -filter:replies -> ensures reply type tweets are filtered out
+5) min_faves -> filters tweets with minimum number of favourites
+6) min_retweets -> filter tweets with minimum number of tweets
+
+To use both 5 and 6 together use the AND operator
+
+```{r}
+covid_tweets2<- search_tweets("#covid min_faves:100 AND min_retweets:1000",n=100,lang="en",include_rts = FALSE)
+head(covid_tweets2)
+```
+
+# Extract current trending topics globaly
+```{r}
+trending<-get_trends()
+head(trending$trend,10)
+```
+
+# Extract locations of available twitter trends
+```{r}
+trends<- trends_available()
+head(trends)
+```
+
+# Trending topics by country
+```{r}
+Singapore_trend<-get_trends("Singapore")
+head(Singapore_trend)
+```
+We can even narrow this down to city level.
+
+```{r}
+London_trend<-get_trends("London")
+head(London_trend)
+```
