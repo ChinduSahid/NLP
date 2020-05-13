@@ -41,7 +41,6 @@ tweet_data$text<-stringi::stri_trans_general(tweet_data$text, "latin-ascii")
 ```{r}
 tweet_data %>% group_by(airline) %>%
   summarise(Total_tweets=n_distinct(tweet_id))
-tweet_data
 ```
 
 # A breakdown of negative and positive tweets by each airline
