@@ -11,5 +11,5 @@ https://github.com/ChinduSahid/NLP/blob/master/Bag_of_words%2CTFIDF.pdf
 https://github.com/ChinduSahid/NLP/blob/master/Tokenization%2Csetmming%2Clemmatization.pdf
 
 
-**Analysing sentiment on twitter data**
+**Analysing sentiment on Twitter US Airline Sentiment data**
 https://github.com/ChinduSahid/NLP/blob/master/SentimentAnalysis.pdf
