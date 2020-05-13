@@ -5,13 +5,6 @@ output:
   pdf_document: default
   html_document: default
 ---
-```{r, echo = FALSE}
-knitr::opts_chunk$set(
-  fig.path = "README_figs/README-"
-)
-```
-
-
 The dataset used for this analysis is the "Twitter US Airline Sentiment" dataset from Kaggle. We will be analysing the positive and negative sentiments in this data.
 
 # Data Preparation
